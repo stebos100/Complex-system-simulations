@@ -66,7 +66,7 @@ import sympy as smp
 
 #%%
 
-def examine_stable_points(expression_for_v, expression_for_u , x_var, y_var, solutions):
+def stability_analysis(expression_for_v, expression_for_u , x_var, y_var, solutions):
   # First, calculate the jacobian matrix for our equations
   equation_matrix = Matrix([expression_for_v, expression_for_u])
   var_mat = Matrix([x_var, y_var])
@@ -119,17 +119,17 @@ def solve_dynamical_system(expression_for_v, expression_for_u
   solutions = smp.solve([smp.Eq(expression_for_v, 0), smp.Eq(expression_for_u
   , 0)], (x_var, y_var)) 
   # Calculate nullclines
-  x_nullclines = calculate_nullclines(expression_for_v, y_var, x_var, total_range)
-  y_nullclines = calculate_nullclines(expression_for_u
+  x_nullclines = nullcines_calculations(expression_for_v, y_var, x_var, total_range)
+  y_nullclines = nullcines_calculations(expression_for_u
   , y_var, x_var, total_range)
 
   # Get stable points and check their type
-  stable_points = examine_stable_points(expression_for_v, expression_for_u
+  stable_points = stability_analysis(expression_for_v, expression_for_u
   , x_var, y_var, solutions)
   # Return relevant results
   return x_range, y_range, x1_range, y1_range, f1_val, f2_val, x_nullclines, y_nullclines, stable_points
 
-def calculate_nullclines(eq, solvar, plotvar, inputrange):
+def nullcines_calculations(eq, solvar, plotvar, inputrange):
   # Set our equations to zero and solve them
   eq = Eq(eq, 0)
   sol = solve(eq, solvar)
@@ -140,7 +140,7 @@ def calculate_nullclines(eq, solvar, plotvar, inputrange):
       nullclines.append([f(input) for input in inputrange])
   return nullclines
 
-def plot_dynamical_system(xlimit, ylimit,x_range, y_range, x1_range, y1_range, f1_val, f2_val, x_nullclines, y_nullclines, stable_points, x_behavior, y_behavior, x_var_name, y_var_name):
+def plot_IZ_system_and_stability(xlimit, ylimit,x_range, y_range, x1_range, y1_range, f1_val, f2_val, x_nullclines, y_nullclines, stable_points, x_behavior, y_behavior, x_var_name, y_var_name):
   # Create plotting area and set axis limits
   fig, ax = plt.subplots(figsize=(10,10))
   ax.set_xlim([x_range[0], x_range[-1]])
@@ -201,7 +201,7 @@ def plot_dynamical_system(xlimit, ylimit,x_range, y_range, x1_range, y1_range, f
 
 # %%
 # Brain 2 implementation of Izhikevich neuron
-def create_izhikevich_neuron(v_max):
+def IZ_neuron_creation(v_max):
     IZeq = '''   
         dv/dt = I + (0.04/ms/mV)*v**2 + (5/ms)*v + 140*mV/ms - u : volt
 
@@ -221,14 +221,14 @@ def create_izhikevich_neuron(v_max):
     return neuron_stability_analysis
 
 # Create function that creates a neuron and plots its behavior based on the given parameters
-def plot_izhikevich_dynamical_sytem(boolean, xlimit, ylimit,I_ext, a_input, b_input, c_input, d_input, v_max):
+def IZ_system_dynamics_plot(boolean, xlimit, ylimit,I_ext, a_input, b_input, c_input, d_input, v_max):
 
   # Regular simulation of Izhikevich model using brian2
   # Start the scope to register all activity
   defaultclock.dt = 0.01*ms
   start_scope()
   # Define the neuron
-  neuron = create_izhikevich_neuron(v_max)      
+  neuron = IZ_neuron_creation(v_max)      
   # Set neuron parameters
   a = a_input/ms
   b = b_input/ms
@@ -276,12 +276,12 @@ def plot_izhikevich_dynamical_sytem(boolean, xlimit, ylimit,I_ext, a_input, b_in
   x_range, y_range,x1_range, y1_range, f1_val, f2_val, x_nullclines, y_nullclines, stable_points = solve_dynamical_system(expression_for_v, expression_for_u
   , x_range = [-180, 80] , y_range = [-140, -10], x_var = v, y_var = u)
   # Plot results
-  plot_dynamical_system(xlimit, ylimit, x_range, y_range, x1_range, y1_range, f1_val, f2_val, x_nullclines, y_nullclines, stable_points, x_behavior = statemon.v[0]/mV, y_behavior = statemon.u[0], x_var_name = 'v', y_var_name = 'u')
+  plot_IZ_system_and_stability(xlimit, ylimit, x_range, y_range, x1_range, y1_range, f1_val, f2_val, x_nullclines, y_nullclines, stable_points, x_behavior = statemon.v[0]/mV, y_behavior = statemon.u[0], x_var_name = 'v', y_var_name = 'u')
 
 # %%
 #-----------------------------FIRST_VALUE_ANALYSIS------------------------------
 #a zoomed out view 
-I_ext_def =-99
+I_ext_def = -99
 a_def = 0.2
 b_def = 2
 c_def = -56.
@@ -291,7 +291,7 @@ vmax_def = 30.
 x_limit = [-100, 80]
 y_limit = [-130, -10]
 
-plotone = plot_izhikevich_dynamical_sytem("True",x_limit,y_limit, I_ext_def, a_def, b_def, c_def, d_def, vmax_def)
+plotone = IZ_system_dynamics_plot("True",x_limit,y_limit, I_ext_def, a_def, b_def, c_def, d_def, vmax_def)
 
 #%%
 #a zoomed in view 
@@ -306,7 +306,7 @@ vmax_def = 30.
 x_limit = [-100, 80]
 y_limit = [-130, -80]
 
-plotone = plot_izhikevich_dynamical_sytem("True",x_limit,y_limit, I_ext_def, a_def, b_def, c_def, d_def, vmax_def)
+plotone = IZ_system_dynamics_plot("True",x_limit,y_limit, I_ext_def, a_def, b_def, c_def, d_def, vmax_def)
 
 # %%
 #a zoomed  view 
@@ -321,7 +321,7 @@ vmax_def = 30.
 x_limit = [-100, 80]
 y_limit = [-130, -80]
 
-plotone = plot_izhikevich_dynamical_sytem("True",x_limit,y_limit, I_ext_def, a_def, b_def, c_def, d_def, vmax_def)
+plotone = IZ_system_dynamics_plot("True",x_limit,y_limit, I_ext_def, a_def, b_def, c_def, d_def, vmax_def)
 
 #%%
 #a zoomed out view 
@@ -336,6 +336,6 @@ vmax_def = 30.
 x_limit = [-100, 80]
 y_limit = [-130, -80]
 
-plotone = plot_izhikevich_dynamical_sytem("True",x_limit,y_limit, I_ext_def, a_def, b_def, c_def, d_def, vmax_def)
+plotone = IZ_system_dynamics_plot("True",x_limit,y_limit, I_ext_def, a_def, b_def, c_def, d_def, vmax_def)
 
 #%%
